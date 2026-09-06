@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本变形器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        .box {
+            background: #ffffff;
+            padding: 40px 44px 34px;
+            border-radius: 4px;
+            max-width: 620px;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+        .title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #1a2634;
+            margin: 0 0 4px 0;
+        }
+        .sub {
+            color: #8ea4b8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .control-row {
+            display: flex;
+            gap: 6px;
+            background: #f0f3f6;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .control-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #5a7488;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .control-btn.active {
+            background: white;
+            color: #1a2634;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .control-btn:hover:not(.active) {
+            color: #1a2634;
+        }
+        .control-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #8ea4b8;
+            letter-spacing: 0.5px;
+            padding-left: 4px;
+            margin-bottom: 2px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 4px;
+            border: 2px solid #e6ecf2;
+            background: #fafcfe;
+            color: #1a2634;
+            font-size: 22px;
+            font-weight: 450;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            letter-spacing: 0.3px;
+        }
+        input:focus {
+            border-color: #7ab0d9;
+            box-shadow: 0 0 0 4px rgba(122, 176, 217, 0.12);
+        }
+        input::placeholder {
+            color: #bccfd8;
+            font-weight: 380;
+        }
+        .result-wrap {
+            margin-top: 18px;
+            position: relative;
+        }
+        .result {
+            padding: 18px 22px;
+            background: #f2f6fa;
+            border-radius: 4px;
+            color: #1a2634;
+            font-size: 28px;
+            font-weight: 480;
+            min-height: 72px;
+            border: 2px solid #e6ecf2;
+            word-break: break-all;
+            transition: border 0.2s;
+            line-height: 1.4;
+            letter-spacing: 0.3px;
+        }
+        .result.empty {
+            color: #bccfd8;
+            font-size: 20px;
+            font-weight: 380;
+        }
+        .result:not(.empty) {
+            border-color: #d0e2ee;
+        }
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 28px;
+            border-radius: 4px;
+            border: none;
+            font-size: 16px;
+            font-weight: 540;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: #4f8db7;
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 141, 183, 0.25);
+        }
+        .btn-primary:hover {
+            background: #3d78a0;
+            transform: scale(0.97);
+            box-shadow: 0 2px 8px rgba(79, 141, 183, 0.2);
+        }
+        .btn-primary:active {
+            transform: scale(0.94);
+        }
+        .btn-secondary {
+            background: #eef2f6;
+            color: #3d5a70;
+        }
+        .btn-secondary:hover {
+            background: #e2e8ef;
+        }
+        .btn-secondary:active {
+            transform: scale(0.96);
+        }
+        .status {
+            font-size: 13px;
+            color: #8ea4b8;
+            margin-top: 16px;
+            text-align: center;
+            border-top: 1px solid #f0f3f6;
+            padding-top: 16px;
+        }
+        .status span {
+            background: #f0f3f6;
+            padding: 2px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #3d5a70;
+        }
+        @media (max-width: 480px) {
+            .box {
+                padding: 24px 20px 26px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            input {
+                font-size: 18px;
+                padding: 14px 16px;
+            }
+            .result {
+                font-size: 22px;
+                padding: 14px 16px;
+                min-height: 60px;
+            }
+            .btn {
+                flex: 1;
+                padding: 12px 16px;
+                font-size: 14px;
+                min-width: 60px;
+            }
+            .control-btn {
+                font-size: 13px;
+                padding: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <div class="title">文本变形器</div>
+    <div class="sub">颠倒英语 · Leet语 · 双向转换</div>
+
+    <div class="control-group">
+        <div>
+            <div class="control-label">目标语言</div>
+            <div class="control-row" id="langGroup">
+                <button class="control-btn active" data-lang="upside">颠倒英语</button>
+                <button class="control-btn" data-lang="leet">Leet 语</button>
+            </div>
+        </div>
+        <div>
+            <div class="control-label">转换方向</div>
+            <div class="control-row" id="dirGroup">
+                <button class="control-btn active" data-dir="to">普通 → 目标</button>
+                <button class="control-btn" data-dir="from">目标 → 普通</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-wrap">
+        <input id="in" type="text" placeholder="输入英文..." value="Hello" spellcheck="false" autofocus>
+    </div>
+
+    <div class="result-wrap">
+        <div class="result" id="out">ollǝH</div>
+    </div>
+
+    <div class="row">
+        <button class="btn btn-primary" id="go">转换</button>
+        <button class="btn btn-secondary" id="clr">清空</button>
+    </div>
+
+    <div class="status" id="status">
+        当前：<span id="modeLabel">颠倒英语</span>  ·  <span id="dirLabel">普通 → 目标</span>
+    </div>
+</div>
+
+<script>
+    // ========================================
+    // 1. 颠倒英语映射 (Upside Down)
+    // ========================================
+    const upsideMap = {
+        'a': 'ɐ', 'b': 'q', 'c': 'ɔ', 'd': 'p', 'e': 'ǝ', 'f': 'ɟ',
+        'g': 'ƃ', 'h': 'ɥ', 'i': 'ᴉ', 'j': 'ɾ', 'k': 'ʞ', 'l': 'l',
+        'm': 'ɯ', 'n': 'u', 'o': 'o', 'p': 'd', 'q': 'b', 'r': 'ɹ',
+        's': 's', 't': 'ʇ', 'u': 'n', 'v': 'ʌ', 'w': 'ʍ', 'x': 'x',
+        'y': 'ʎ', 'z': 'z',
+        'A': '∀', 'B': '𐐒', 'C': 'Ɔ', 'D': '◖', 'E': 'Ǝ', 'F': 'Ⅎ',
+        'G': '⅁', 'H': 'H', 'I': 'I', 'J': 'ſ', 'K': '⋊', 'L': '˥',
+        'M': 'M', 'N': 'N', 'O': 'O', 'P': 'Ԁ', 'Q': 'Ɋ', 'R': 'ᴚ',
+        'S': 'S', 'T': '┴', 'U': '∩', 'V': 'Λ', 'W': 'M', 'X': 'X',
+        'Y': '⅄', 'Z': 'Z',
+        '0': '0', '1': '¡', '2': '⅂', '3': 'Ɛ', '4': 'ᔭ',
+        '5': 'S', '6': '9', '7': '⅂', '8': '8', '9': '6',
+        '.': '·', ',': "'", '?': '¿', '!': '¡',
+        '(': ')', ')': '(', '[': ']', ']': '[',
+        '{': '}', '}': '{', '<': '>', '>': '<',
+        '&': '⅋', '_': '‾', '"': '„', "'": ',',
+        '`': ',', ';': '؛', ':': '∶', '/': '\\', '\\': '/',
+        '|': '|', '~': '~', '@': '@', '#': '#', '$': '$',
+        '%': '%', '^': '^', '*': '*', '+': '+', '=': '=', '-': '-',
+    };
+
+    const reverseUpsideMap = {};
+    for (const [k, v] of Object.entries(upsideMap)) {
+        reverseUpsideMap[v] = k;
+    }
+
+    function toUpside(s) {
+        return s.split('').reverse().map(c => upsideMap[c] || c).join('');
+    }
+
+    function fromUpside(s) {
+        return s.split('').reverse().map(c => reverseUpsideMap[c] || c).join('');
+    }
+
+    // ========================================
+    // 2. Leet 语映射
+    // ========================================
+    const leetMap = {
+        'a': '4', 'A': '4',
+        'b': '8', 'B': '8',
+        'c': '(', 'C': '(',
+        'd': '|)', 'D': '|)',
+        'e': '3', 'E': '3',
+        'f': '|=', 'F': '|=',
+        'g': '6', 'G': '6',
+        'h': '#', 'H': '#',
+        'i': '1', 'I': '1',
+        'j': ']', 'J': ']',
+        'k': '|<', 'K': '|<',
+        'l': '1', 'L': '1',
+        'm': '|V|', 'M': '|V|',
+        'n': '|\\|', 'N': '|\\|',
+        'o': '0', 'O': '0',
+        'p': '|*', 'P': '|*',
+        'q': '9', 'Q': '9',
+        'r': '|2', 'R': '|2',
+        's': '5', 'S': '5',
+        't': '7', 'T': '7',
+        'u': '|_|', 'U': '|_|',
+        'v': '\\/', 'V': '\\/',
+        'w': '\\/\\/', 'W': '\\/\\/',
+        'x': '><', 'X': '><',
+        'y': '`/', 'Y': '`/',
+        'z': '2', 'Z': '2',
+    };
+
+    const reverseLeetMap = {};
+    for (const [k, v] of Object.entries(leetMap)) {
+        if (!reverseLeetMap[v] || v.length > reverseLeetMap[v].length) {
+            reverseLeetMap[v] = k;
+        }
+    }
+
+    function toLeet(s) {
+        let result = '';
+        for (const ch of s) {
+            result += leetMap[ch] || ch;
+        }
+        return result;
+    }
+
+    function fromLeet(s) {
+        let result = '';
+        let i = 0;
+        const keys = Object.keys(reverseLeetMap).sort((a, b) => b.length - a.length);
+        while (i < s.length) {
+            let matched = false;
+            for (const key of keys) {
+                if (s.startsWith(key, i)) {
+                    result += reverseLeetMap[key];
+                    i += key.length;
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                result += s[i];
+                i++;
+            }
+        }
+        return result;
+    }
+
+    // ========================================
+    // 3. 核心转换
+    // ========================================
+    function convert(text, lang, dir) {
+        if (lang === 'upside') {
+            return dir === 'to' ? toUpside(text) : fromUpside(text);
+        } else if (lang === 'leet') {
+            return dir === 'to' ? toLeet(text) : fromLeet(text);
+        }
+        return text;
+    }
+
+    // ========================================
+    // 4. UI
+    // ========================================
+    const inEl = document.getElementById('in');
+    const outEl = document.getElementById('out');
+    const langBtns = document.querySelectorAll('#langGroup .control-btn');
+    const dirBtns = document.querySelectorAll('#dirGroup .control-btn');
+    const modeLabel = document.getElementById('modeLabel');
+    const dirLabel = document.getElementById('dirLabel');
+
+    let currentLang = 'upside';
+    let currentDir = 'to';
+
+    function updateStatus() {
+        const langNames = { 'upside': '颠倒英语', 'leet': 'Leet 语' };
+        const dirNames = { 'to': '普通 → 目标', 'from': '目标 → 普通' };
+        modeLabel.textContent = langNames[currentLang];
+        dirLabel.textContent = dirNames[currentDir];
+    }
+
+    function update() {
+        const v = inEl.value;
+        if (v.trim() === '') {
+            outEl.textContent = '（空）';
+            outEl.classList.add('empty');
+        } else {
+            const result = convert(v, currentLang, currentDir);
+            outEl.textContent = result;
+            outEl.classList.remove('empty');
+        }
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        langBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+        updateStatus();
+        update();
+    }
+
+    function setDir(dir) {
+        currentDir = dir;
+        dirBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.dir === dir);
+        });
+        updateStatus();
+        update();
+    }
+
+    langBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setLang(btn.dataset.lang);
+        });
+    });
+
+    dirBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setDir(btn.dataset.dir);
+        });
+    });
+
+    document.getElementById('go').addEventListener('click', update);
+
+    document.getElementById('clr').addEventListener('click', () => {
+        inEl.value = '';
+        outEl.textContent = '（空）';
+        outEl.classList.add('empty');
+        inEl.focus();
+    });
+
+    inEl.addEventListener('input', update);
+    inEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            update();
+        }
+    });
+
+    setLang('upside');
+    setDir('to');
+</script>
+</body>
+</html>
+<!-- 使用 DeepSeek 生成代码！ -->
